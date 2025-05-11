@@ -90,3 +90,52 @@ jenkins/jenkins_home/
 # Coverage reports
 .coverage
 htmlcov/
+
+# DVC
+/data/raw/
+/data/processed/
+.dvc/data_store/
+*.dvc.dir/
+
+# MLflow
+/mlruns/
+
+# Airflow
+/airflow/logs/
+/airflow/plugins/
+
+# Minikube
+.minikube/
+
+# Jenkins
+jenkins_home/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+.venv/

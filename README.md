@@ -91,8 +91,8 @@ This project implements a complete MLOps workflow with the following components:
 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/mlops-project.git
-cd mlops-project
+git clone https://github.com/huzi0906/iris-flower-classification-mlops-project.git
+cd iris-flower-classification-mlops-project
 ```
 
 2. Install dependencies

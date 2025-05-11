@@ -1,34 +1,33 @@
 # Core ML libraries
-scikit-learn==1.2.2
-pandas==2.0.0
-numpy==1.24.3
-matplotlib==3.7.1
-seaborn==0.12.2
+scikit-learn
+pandas
+numpy
+matplotlib
+seaborn
 
 # MLOps tools
-mlflow==2.3.1
-dvc==2.58.2
-dvc-s3==2.23.0
+mlflow
+dvc
 
 # Web framework for API
-fastapi==0.95.1
-uvicorn==0.22.0
-pydantic==1.10.7
+fastapi
+uvicorn
+pydantic
 
 # Testing
-pytest==7.3.1
-pytest-cov==4.1.0
-flake8==6.0.0
-black==23.3.0
-isort==5.12.0
+pytest
+pytest-cov
+flake8
+black
+isort
 
 # Workflow orchestration
-apache-airflow==2.6.0
+apache-airflow
 
 # Jupyter for exploration
-jupyter==1.0.0
-notebook==6.5.4
+jupyter
+notebook
 
 # Deployment
-kubernetes==26.1.0
-docker==6.0.1
+kubernetes
+docker
