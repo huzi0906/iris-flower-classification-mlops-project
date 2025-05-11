@@ -1,0 +1,9 @@
+md5: f11791276c165bb7beba251fd4b93746
+frozen: true
+deps:
+- path: src/data/process_data.py
+  md5: 86bf94c11908fee66213665c5619bad9
+outs:
+- md5: 768097df9ebcc590e40e1dbd95232f38
+  size: 5172
+  path: data/raw/iris.csv

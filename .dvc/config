@@ -1,0 +1,4 @@
+# DVC configuration for remote storage
+['remote "s3"']
+    url = s3://iris-mlops-project/
+    endpointurl = https://s3.amazonaws.com

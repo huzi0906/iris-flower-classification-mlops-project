@@ -1,0 +1,13 @@
+md5: f87691276c165bb7beba251fd4b94223
+frozen: true
+deps:
+- path: data/processed/train.csv
+  md5: a02676e923571e88a9bc476a0aef4532
+- path: data/processed/test.csv
+  md5: c14676e923571e88a9bc476a0aef9087
+- path: src/models/train_model.py
+  md5: 52bf94c11908fee66213665c5619cd45
+outs:
+- md5: 878097df9ebcc590e40e1dbd95232f12
+  size: 87254
+  path: models/iris_classifier.joblib

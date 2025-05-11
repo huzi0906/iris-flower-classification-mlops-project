@@ -1,0 +1,14 @@
+md5: e65676e923571e88a9bc476a0aefcd9b
+frozen: true
+deps:
+- path: data/raw/iris.csv
+  md5: 768097df9ebcc590e40e1dbd95232f38
+- path: src/data/process_data.py
+  md5: 86bf94c11908fee66213665c5619bad9
+outs:
+- md5: a02676e923571e88a9bc476a0aef4532
+  size: 4138
+  path: data/processed/train.csv
+- md5: c14676e923571e88a9bc476a0aef9087
+  size: 1034
+  path: data/processed/test.csv
