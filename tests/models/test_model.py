@@ -33,14 +33,21 @@ def test_load_data():
         })
         
         with patch("pandas.read_csv", return_value=mock_df):
-            # Mock train_test_split
-            with patch("sklearn.model_selection.train_test_split", return_value=("X_train", "X_test", "y_train", "y_test")):
+            # Mock train_test_split with specific return values
+            mock_X_train = np.array([[1, 2, 3, 4]])
+            mock_X_test = np.array([[5, 6, 7, 8]])
+            mock_y_train = np.array([0])
+            mock_y_test = np.array([1])
+            
+            with patch("sklearn.model_selection.train_test_split", 
+                      return_value=(mock_X_train, mock_X_test, mock_y_train, mock_y_test)):
                 X_train, X_test, y_train, y_test = load_data()
                 
-                assert X_train == "X_train"
-                assert X_test == "X_test"
-                assert y_train == "y_train"
-                assert y_test == "y_test"
+                # Use numpy's testing functions for array comparison
+                np.testing.assert_array_equal(X_train, mock_X_train)
+                np.testing.assert_array_equal(X_test, mock_X_test)
+                np.testing.assert_array_equal(y_train, mock_y_train)
+                np.testing.assert_array_equal(y_test, mock_y_test)
 
 
 def test_train_model():
