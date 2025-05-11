@@ -1,166 +1,163 @@
 """
-Model Training Script for Iris Classification
-This script trains a machine learning model on the processed Iris dataset and tracks experiments with MLflow.
+Model training script for Iris dataset.
 """
 
 import os
-import pandas as pd
-import numpy as np
-import mlflow
-import mlflow.sklearn
-import logging
-import joblib
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import (
-    accuracy_score,
-    precision_score,
-    recall_score,
-    f1_score,
-    classification_report,
-)
+import pickle
+from datetime import datetime
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
+import mlflow
+import numpy as np
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+from sklearn.model_selection import train_test_split
+
+from src.pipeline.mlflow_utils import log_model
 
 
 def load_data():
-    """Load the processed training and test data."""
-    logger.info("Loading processed data")
-
-    train_path = "data/processed/train.csv"
-    test_path = "data/processed/test.csv"
-
-    train_data = pd.read_csv(train_path)
-    test_data = pd.read_csv(test_path)
-
-    # Prepare features and target
-    X_train = train_data.drop("target", axis=1)
-    y_train = train_data["target"]
-
-    X_test = test_data.drop("target", axis=1)
-    y_test = test_data["target"]
-
-    logger.info(f"Loaded training data with {X_train.shape[0]} samples")
-    logger.info(f"Loaded test data with {X_test.shape[0]} samples")
-
+    """Load processed data for model training."""
+    data_path = "data/processed/iris_processed.csv"
+    
+    # Check if processed data exists
+    if not os.path.exists(data_path):
+        raise FileNotFoundError(f"Processed data not found at {data_path}. Run process_data.py first.")
+    
+    # Load data
+    df = pd.read_csv(data_path)
+    
+    # Split features and target
+    X = df.drop("target", axis=1)
+    y = df["target"]
+    
+    # Split into train and test sets
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+    
     return X_train, X_test, y_train, y_test
 
 
-def train_model(X_train, y_train, params=None):
-    """Train a RandomForest classifier."""
-    logger.info("Training RandomForest classifier")
-
-    # Default parameters
-    if params is None:
-        params = {"n_estimators": 100, "max_depth": 10, "random_state": 42}
-
-    # Create and train the model
-    model = RandomForestClassifier(
-        n_estimators=params["n_estimators"],
-        max_depth=params["max_depth"],
-        random_state=params["random_state"],
-    )
-
+def train_model(X_train, y_train, hyperparameters=None):
+    """
+    Train a RandomForest classifier.
+    
+    Args:
+        X_train: Training features
+        y_train: Training target
+        hyperparameters: Optional dict of hyperparameters
+    
+    Returns:
+        Trained model
+    """
+    if hyperparameters is None:
+        hyperparameters = {
+            "n_estimators": 100,
+            "max_depth": 5,
+            "min_samples_split": 2,
+            "min_samples_leaf": 1,
+            "random_state": 42,
+        }
+    
+    # Initialize model with hyperparameters
+    model = RandomForestClassifier(**hyperparameters)
+    
+    # Train model
     model.fit(X_train, y_train)
-    logger.info("Model training completed")
-
+    
     return model
 
 
 def evaluate_model(model, X_test, y_test):
-    """Evaluate the model and return metrics."""
-    logger.info("Evaluating model")
-
+    """
+    Evaluate model on test data.
+    
+    Args:
+        model: Trained model
+        X_test: Test features
+        y_test: Test target
+    
+    Returns:
+        Dictionary of evaluation metrics
+    """
+    # Make predictions
     y_pred = model.predict(X_test)
-
+    
     # Calculate metrics
-    accuracy = accuracy_score(y_test, y_pred)
-    precision = precision_score(y_test, y_pred, average="weighted")
-    recall = recall_score(y_test, y_pred, average="weighted")
-    f1 = f1_score(y_test, y_pred, average="weighted")
-
-    logger.info(f"Accuracy: {accuracy:.4f}")
-    logger.info(f"Precision: {precision:.4f}")
-    logger.info(f"Recall: {recall:.4f}")
-    logger.info(f"F1 Score: {f1:.4f}")
-
-    logger.info("\nClassification Report:")
-    logger.info(classification_report(y_test, y_pred))
-
-    return {
-        "accuracy": accuracy,
-        "precision": precision,
-        "recall": recall,
-        "f1_score": f1,
+    metrics = {
+        "accuracy": accuracy_score(y_test, y_pred),
+        "precision": precision_score(y_test, y_pred, average="weighted"),
+        "recall": recall_score(y_test, y_pred, average="weighted"),
+        "f1": f1_score(y_test, y_pred, average="weighted"),
     }
+    
+    return metrics
 
 
-def save_model(model, metrics):
-    """Save the model to disk."""
-    os.makedirs("models", exist_ok=True)
-
-    model_path = "models/iris_classifier.joblib"
-    joblib.dump(model, model_path)
-    logger.info(f"Model saved to {model_path}")
-
+def save_model(model, metrics, output_dir="models"):
+    """
+    Save model to disk.
+    
+    Args:
+        model: Trained model
+        metrics: Model evaluation metrics
+        output_dir: Directory to save model
+    
+    Returns:
+        Path to saved model
+    """
+    # Create output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Save model
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    model_path = os.path.join(output_dir, f"iris_model.pkl")
+    metrics_path = os.path.join(output_dir, f"metrics_{timestamp}.txt")
+    
+    with open(model_path, "wb") as f:
+        pickle.dump(model, f)
+    
+    # Save metrics
+    with open(metrics_path, "w") as f:
+        for metric_name, metric_value in metrics.items():
+            f.write(f"{metric_name}: {metric_value}\n")
+    
     return model_path
 
 
 def main():
-    """Main function to train and evaluate the model with MLflow tracking."""
+    """Main function to train and evaluate model."""
+    print("Loading data...")
     X_train, X_test, y_train, y_test = load_data()
-
-    # Set MLflow experiment
-    mlflow.set_experiment("iris-classification")
-
-    # Parameters to try
-    param_sets = [
-        {"n_estimators": 100, "max_depth": 10, "random_state": 42},
-        {"n_estimators": 200, "max_depth": 15, "random_state": 42},
-        {"n_estimators": 50, "max_depth": 5, "random_state": 42},
-    ]
-
-    best_model = None
-    best_accuracy = 0
-    best_metrics = None
-    best_params = None
-
-    for params in param_sets:
-        with mlflow.start_run():
-            # Log parameters
-            mlflow.log_params(params)
-
-            # Train and evaluate model
-            model = train_model(X_train, y_train, params)
-            metrics = evaluate_model(model, X_test, y_test)
-
-            # Log metrics
-            mlflow.log_metrics(metrics)
-
-            # Log model
-            mlflow.sklearn.log_model(model, "model")
-
-            # Keep track of the best model
-            if metrics["accuracy"] > best_accuracy:
-                best_accuracy = metrics["accuracy"]
-                best_model = model
-                best_metrics = metrics
-                best_params = params
-
-    logger.info(f"Best model parameters: {best_params}")
-    logger.info(f"Best model accuracy: {best_accuracy:.4f}")
-
-    # Save the best model
-    if best_model:
-        model_path = save_model(best_model, best_metrics)
-
-        with mlflow.start_run(run_name="best-model"):
-            mlflow.log_params(best_params)
-            mlflow.log_metrics(best_metrics)
-            mlflow.sklearn.log_model(best_model, "best-model")
+    
+    print("Training model...")
+    hyperparameters = {
+        "n_estimators": 100,
+        "max_depth": 5,
+        "random_state": 42,
+    }
+    model = train_model(X_train, y_train, hyperparameters)
+    
+    print("Evaluating model...")
+    metrics = evaluate_model(model, X_test, y_test)
+    print(f"Model metrics: {metrics}")
+    
+    print("Saving model...")
+    model_path = save_model(model, metrics)
+    print(f"Model saved to {model_path}")
+    
+    print("Logging to MLflow...")
+    run_id = log_model(
+        model=model,
+        model_name="iris_classifier",
+        params=hyperparameters,
+        metrics=metrics,
+        artifact_path="models"
+    )
+    print(f"MLflow run ID: {run_id}")
+    
+    return model, metrics
 
 
 if __name__ == "__main__":
