@@ -47,12 +47,12 @@ def test_load_data():
                 target = mock_df["target"]
 
                 # First 2 rows for training
-                X_train = features.iloc[:2].values
+                X_train = features.iloc[:2]
                 # Last row for testing
-                X_test = features.iloc[2:].values
+                X_test = features.iloc[2:]
                 # Same for target
-                y_train = target.iloc[:2].values
-                y_test = target.iloc[2:].values
+                y_train = target.iloc[:2]
+                y_test = target.iloc[2:]
 
                 return X_train, X_test, y_train, y_test
 
@@ -70,21 +70,31 @@ def test_load_data():
                 assert y_train.shape == (2,)  # 2 target values
                 assert y_test.shape == (1,)  # 1 target value
 
-                # Check data types
-                assert isinstance(X_train, np.ndarray)
-                assert isinstance(X_test, np.ndarray)
-                assert isinstance(y_train, np.ndarray)
-                assert isinstance(y_test, np.ndarray)
+                # Check data types - load_data returns pandas DataFrame and Series
+                assert isinstance(X_train, pd.DataFrame)
+                assert isinstance(X_test, pd.DataFrame)
+                assert isinstance(y_train, pd.Series)
+                assert isinstance(y_test, pd.Series)
 
                 # Check first row of X_train (just to have some value check)
-                np.testing.assert_array_equal(X_train[0], [5.1, 3.5, 1.4, 0.2])
+                expected_values = [5.1, 3.5, 1.4, 0.2]
+                pd.testing.assert_series_equal(
+                    X_train.iloc[0], pd.Series(expected_values, index=X_train.columns)
+                )
 
 
 def test_train_model():
     """Test model training function."""
-    # Create dummy data
-    X_train = np.array([[5.1, 3.5, 1.4, 0.2], [4.9, 3.0, 1.4, 0.2]])
-    y_train = np.array([0, 0])
+    # Create dummy data as pandas DataFrame and Series
+    X_train = pd.DataFrame(
+        {
+            "sepal length (cm)": [5.1, 4.9],
+            "sepal width (cm)": [3.5, 3.0],
+            "petal length (cm)": [1.4, 1.4],
+            "petal width (cm)": [0.2, 0.2],
+        }
+    )
+    y_train = pd.Series([0, 0])
 
     # Train model
     model = train_model(X_train, y_train)
@@ -106,8 +116,15 @@ def test_evaluate_model():
     model = DummyModel()
 
     # Create test data where all examples are class 0
-    X_test = np.array([[5.1, 3.5, 1.4, 0.2], [4.9, 3.0, 1.4, 0.2]])
-    y_test = np.array([0, 0])
+    X_test = pd.DataFrame(
+        {
+            "sepal length (cm)": [5.1, 4.9],
+            "sepal width (cm)": [3.5, 3.0],
+            "petal length (cm)": [1.4, 1.4],
+            "petal width (cm)": [0.2, 0.2],
+        }
+    )
+    y_test = pd.Series([0, 0])
 
     # Evaluate
     metrics = evaluate_model(model, X_test, y_test)
@@ -134,11 +151,18 @@ def test_model_performance():
     with open(model_path, "rb") as f:
         model = pickle.load(f)
 
-    # Create test data (or load from file)
-    # Here we'll create some fake test data for simplicity
+    # Create test data (or load from file) as pandas DataFrame and Series
     np.random.seed(42)
-    X_test = np.random.rand(30, 4)
-    y_test = np.random.randint(0, 3, size=30)
+    X_test = pd.DataFrame(
+        np.random.rand(30, 4),
+        columns=[
+            "sepal length (cm)",
+            "sepal width (cm)",
+            "petal length (cm)",
+            "petal width (cm)",
+        ],
+    )
+    y_test = pd.Series(np.random.randint(0, 3, size=30))
 
     # Make predictions
     y_pred = model.predict(X_test)
